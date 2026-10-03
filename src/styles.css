@@ -6,6 +6,8 @@
   --secondary: #166534;
   --accent: #2563eb;
   --border: #d9e2ef;
+  --warn: #b91c1c;
+  --ok: #15803d;
 }
 
 * {
@@ -18,7 +20,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -29,6 +32,11 @@ button {
   background: #ffffff;
   color: #172033;
   cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .app {
@@ -47,12 +55,19 @@ button {
 }
 
 .hero {
-  min-height: 250px;
   display: grid;
   align-content: center;
   gap: 14px;
   padding: 34px;
   border-left: 7px solid var(--primary);
+}
+
+.hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .hero p,
@@ -79,6 +94,46 @@ button {
   line-height: 1.75;
 }
 
+/* 网络状态指示器 */
+.network-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.network-pill .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.network-pill.online {
+  background: color-mix(in srgb, var(--ok) 12%, #ffffff);
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  color: var(--ok);
+}
+
+.network-pill.online .dot {
+  background: var(--ok);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent);
+}
+
+.network-pill.offline {
+  background: color-mix(in srgb, var(--warn) 10%, #ffffff);
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+  color: var(--warn);
+}
+
+.network-pill.offline .dot {
+  background: var(--warn);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 18%, transparent);
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -103,9 +158,25 @@ button {
 
 .workspace {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 18px;
   margin-bottom: 18px;
+}
+
+.side-panel {
+  padding: 22px;
+  align-self: start;
+  position: sticky;
+  top: 18px;
+}
+
+.side-panel h2 {
+  margin-top: 0;
+}
+
+.main-col {
+  display: grid;
+  gap: 18px;
 }
 
 .panel {
@@ -124,10 +195,37 @@ button {
   gap: 10px;
 }
 
+.chips.vertical {
+  flex-direction: column;
+}
+
+.chips a,
 .chips button {
   padding: 0 12px;
   border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
   background: color-mix(in srgb, var(--primary) 8%, #ffffff);
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+}
+
+.chips button.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.pending-badge {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--warn) 10%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--warn) 30%, var(--border));
+  color: var(--warn);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .heading {
@@ -165,14 +263,197 @@ label span {
   font-size: 13px;
 }
 
-input {
+input,
+ select {
   width: 100%;
   min-height: 42px;
   border-radius: 7px;
   border: 1px solid var(--border);
   padding: 0 12px;
+  background: #ffffff;
 }
 
+.form-msg {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border));
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.checks-title {
+  margin: 22px 0 12px;
+}
+
+.hoof-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hoof-check {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: #fbfdff;
+  display: grid;
+  gap: 10px;
+}
+
+.hoof-position {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.hoof-check label.abnormal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  grid-template-columns: none;
+}
+
+.hoof-check label.abnormal input {
+  width: auto;
+  min-height: auto;
+}
+
+/* 同步面板 */
+.sync-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sync-stat {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.sync-stat small {
+  color: #64748b;
+}
+
+.sync-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 24px;
+}
+
+.sync-stat strong.warn {
+  color: var(--warn);
+}
+
+.sync-stat strong.conflict {
+  color: var(--accent);
+}
+
+.sync-results,
+.pending-list {
+  margin-top: 16px;
+}
+
+.sync-results h3,
+.pending-list h3 {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.sync-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sync-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.outcome-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.outcome-badge.synced {
+  background: color-mix(in srgb, var(--ok) 14%, #ffffff);
+  color: var(--ok);
+}
+
+.outcome-badge.conflict {
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  color: var(--accent);
+}
+
+.outcome-badge.duplicate {
+  background: color-mix(in srgb, #64748b 14%, #ffffff);
+  color: #64748b;
+}
+
+.outcome-badge.failed {
+  background: color-mix(in srgb, var(--warn) 14%, #ffffff);
+  color: var(--warn);
+}
+
+.order-id {
+  font-family: ui-monospace, monospace;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.message {
+  color: #526071;
+}
+
+.pending-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.pending-item.failed {
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--border));
+  background: color-mix(in srgb, var(--warn) 4%, #ffffff);
+}
+
+.pending-item.conflict {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+}
+
+.pending-item b {
+  color: var(--primary);
+}
+
+.pending-item p {
+  margin: 4px 0 0;
+  color: #526071;
+  font-size: 13px;
+}
+
+.error-msg {
+  color: var(--warn) !important;
+}
+
+/* 记录列表 */
 .records {
   display: grid;
   gap: 12px;
@@ -182,11 +463,16 @@ input {
   display: grid;
   grid-template-columns: 54px 1fr;
   gap: 14px;
-  align-items: center;
+  align-items: start;
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fbfdff;
+}
+
+.records article.merged {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
 }
 
 .records b {
@@ -198,21 +484,218 @@ input {
   background: linear-gradient(135deg, var(--primary), var(--accent));
 }
 
-.records h3 {
-  margin-bottom: 6px;
+.record-body h3 {
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.records p {
-  margin: 0;
+.record-body p {
+  margin: 4px 0;
   color: #526071;
   line-height: 1.6;
+}
+
+.source-badge,
+.rev-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.source-badge.local {
+  background: color-mix(in srgb, var(--secondary) 14%, #ffffff);
+  color: var(--secondary);
+}
+
+.source-badge.central {
+  background: color-mix(in srgb, #64748b 14%, #ffffff);
+  color: #64748b;
+}
+
+.source-badge.merged {
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  color: var(--accent);
+}
+
+.rev-badge {
+  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
+  color: var(--primary);
+}
+
+.ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.warn {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.gait-issues {
+  color: var(--warn) !important;
+}
+
+.hoof-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hoof-chip {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 8%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  color: #526071;
+}
+
+.hoof-chip.abnormal {
+  background: color-mix(in srgb, var(--warn) 12%, #ffffff);
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--border));
+  color: var(--warn);
+}
+
+.empty {
+  color: #94a3b8;
+  text-align: center;
+  padding: 24px;
+}
+
+/* 冲突展示 */
+.conflict-block {
+  margin-top: 12px;
+}
+
+.conflict-toggle {
+  font-size: 13px;
+  padding: 4px 10px;
+  min-height: 30px;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.source-col h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.source-col pre {
+  margin: 0;
+  padding: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 7px;
+  font-size: 11px;
+  overflow: auto;
+  max-height: 260px;
+}
+
+.conflicts-list {
+  grid-column: 1 / -1;
+}
+
+.conflicts-list h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--warn);
+}
+
+.conflicts-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.conflicts-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.conflicts-list code {
+  background: color-mix(in srgb, var(--primary) 10%, #ffffff);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--primary);
+}
+
+.conflict-vals {
+  color: #526071;
+}
+
+/* 演示控制台 */
+.demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.demo-buttons button {
+  padding: 0 14px;
+}
+
+.demo-buttons button.danger {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--border));
+}
+
+.demo-hint {
+  margin-top: 12px;
+  color: #526071;
+  font-size: 13px;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  text-decoration: underline;
+  min-height: auto;
+  padding: 0;
+}
+
+.footer {
+  margin-top: 24px;
+  padding: 18px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
 }
 
 @media (max-width: 860px) {
   .metrics,
   .workspace,
-  .field-grid {
+  .field-grid,
+  .hoof-checks,
+  .sources-grid,
+  .sync-stats {
     grid-template-columns: 1fr;
+  }
+
+  .side-panel {
+    position: static;
   }
 
   .hero {

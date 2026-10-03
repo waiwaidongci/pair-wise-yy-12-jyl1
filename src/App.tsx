@@ -1,126 +1,116 @@
-import "./styles.css";
+import { useState } from "react";
+import { NetworkStatus } from "./components/NetworkStatus";
+import { Metrics } from "./components/Metrics";
+import { SyncPanel } from "./components/SyncPanel";
+import { OrderForm } from "./components/OrderForm";
+import { OrderList } from "./components/OrderList";
+import { HistoryQuery } from "./components/HistoryQuery";
+import { DemoControls } from "./components/DemoControls";
+import { useSync } from "./hooks/useSync";
+import { useNetwork } from "./hooks/useNetwork";
 
-const project = {
-  "sourceNo": 6,
-  "id": "hxyfront-62011",
-  "port": 62011,
-  "title": "马术蹄铁修整档案",
-  "domain": "马术蹄铁",
-  "prompt": "做一个面向马术俱乐部蹄铁师的修蹄记录前端项目，可以记录马匹编号、步态问题、蹄形评估、蹄铁类型、钉位、修蹄日期、下次复查日期和照片备注。页面需要有马匹列表、复查提醒、左右前后蹄对比记录、异常步态标记和蹄铁更换历史。",
-  "palette": [
-    "#78350f",
-    "#166534",
-    "#2563eb"
-  ],
-  "metrics": [
-    "待复查",
-    "异常步态",
-    "更换蹄铁",
-    "马匹档案"
-  ],
-  "filters": [
-    "前蹄",
-    "后蹄",
-    "运动马",
-    "休养马"
-  ],
-  "fields": [
-    "马匹编号",
-    "步态问题",
-    "蹄形评估",
-    "蹄铁类型",
-    "钉位",
-    "下次复查"
-  ],
-  "records": [
-    [
-      "HORSE-18",
-      "右前蹄外侧磨耗",
-      "铝蹄铁",
-      "14天后复查"
-    ],
-    [
-      "HORSE-27",
-      "后蹄裂纹",
-      "加护蹄垫",
-      "拍照归档"
-    ],
-    [
-      "HORSE-31",
-      "步态轻微不稳",
-      "需教练复核",
-      "已标记"
-    ]
-  ]
-};
-
+/**
+ * 可续作修蹄台
+ *
+ * 核心能力：
+ * - 断网时存本机，回场后合并中央档案
+ * - 马匹档案、蹄位检查、蹄铁更换共用一个修订号
+ * - 两边都改过就留两份来源，不得互相覆盖
+ * - 蹄铁类型变化后旧训练放行失效重算
+ * - 入库失败后保留本地批次，恢复网络重试，同一单不重复计入
+ * - 升级时旧数据没有修订号就回填
+ * - 历史钉位和照片备注可查
+ */
 function App() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const {
+    pendingOrders,
+    syncing,
+    lastResults,
+    refresh: refreshSync,
+    retry,
+  } = useSync();
+  const { isOnline } = useNetwork();
+
+  const refresh = () => {
+    setRefreshKey((k) => k + 1);
+    refreshSync();
+    // 在线时立即同步新保存的单子
+    if (isOnline) {
+      retry();
+    }
+  };
+
   return (
     <main className="app">
       <section className="hero">
-        <p>{project.id} · 源提示词{project.sourceNo} · Port {project.port}</p>
-        <h1>{project.title}</h1>
-        <span>{project.prompt}</span>
-      </section>
-
-      <section className="metrics">
-        {project.metrics.map((metric: string, index: number) => (
-          <article key={metric}>
-            <small>{metric}</small>
-            <strong>{[28, 6, 14, 91][index] ?? 10}</strong>
-          </article>
-        ))}
-      </section>
-
-      <section className="workspace">
-        <aside className="panel">
-          <h2>{project.domain}分类</h2>
-          <div className="chips">
-            {project.filters.map((item: string) => (
-              <button key={item}>{item}</button>
-            ))}
+        <div className="hero-top">
+          <div>
+            <p>可续作修蹄台 · 断网续作</p>
+            <h1>马术蹄铁修整档案</h1>
           </div>
+          <NetworkStatus />
+        </div>
+        <span>
+          远场马房断网时，蹄铁师先在纸面记录；回场后将本机批次合并到中央档案。
+          马匹档案、蹄位检查、蹄铁更换共用一个修订号，两边都改过就留两份来源、互不覆盖。
+          蹄铁类型变化后旧训练放行失效重算；入库失败保留本地批次，恢复网络重试且同一单不重复计入；
+          升级时旧数据缺失的修订号自动回填；历史钉位与照片备注随时可查。
+        </span>
+      </section>
+
+      <Metrics refreshKey={refreshKey} />
+
+      <div className="workspace">
+        <aside className="panel side-panel">
+          <h2>修蹄台导航</h2>
+          <div className="chips vertical">
+            <a href="#new-order">新增修蹄单</a>
+            <a href="#sync">同步批次</a>
+            <a href="#orders">修蹄单列表</a>
+            <a href="#history">历史查询</a>
+            <a href="#demo">演示控制台</a>
+          </div>
+          {pendingOrders.length > 0 && (
+            <div className="pending-badge">
+              {pendingOrders.length} 单待同步
+            </div>
+          )}
         </aside>
 
-        <section className="panel form-panel">
-          <div className="heading">
-            <div>
-              <p>专业字段</p>
-              <h2>新增记录</h2>
-            </div>
-            <button className="primary">保存记录</button>
+        <div className="main-col">
+          <div id="new-order">
+            <OrderForm onSaved={refresh} />
           </div>
-          <div className="field-grid">
-            {project.fields.map((field: string) => (
-              <label key={field}>
-                <span>{field}</span>
-                <input placeholder={"填写" + field} />
-              </label>
-            ))}
+          <div id="sync">
+            <SyncPanel
+              pendingOrders={pendingOrders}
+              syncing={syncing}
+              lastResults={lastResults}
+              onRetry={retry}
+            />
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
 
-      <section className="panel">
-        <div className="heading">
-          <div>
-            <p>近期记录</p>
-            <h2>工作台摘要</h2>
-          </div>
-          <button>导出CSV</button>
-        </div>
-        <div className="records">
-          {project.records.map((record: string[], index: number) => (
-            <article key={record.join("-")}>
-              <b>{String(index + 1).padStart(2, "0")}</b>
-              <div>
-                <h3>{record[0]}</h3>
-                <p>{record.slice(1).join(" · ")}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      <div id="orders">
+        <OrderList refreshKey={refreshKey} />
+      </div>
+
+      <div id="history">
+        <HistoryQuery />
+      </div>
+
+      <div id="demo">
+        <DemoControls onChanged={refresh} />
+      </div>
+
+      <footer className="footer">
+        <p>
+          可续作修蹄台 · 断网存本机 · 回场合并中央 · 共用修订号 · 冲突留两份来源 ·
+          蹄铁类型变化放行失效重算 · 失败保留批次重试幂等 · 旧数据修订号回填 · 历史钉位照片可查
+        </p>
+      </footer>
     </main>
   );
 }
